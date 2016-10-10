@@ -1,7 +1,10 @@
-geodash.controllers["controller_sidebar_geodasheditor"] = function(
-  $scope, $element, $controller, $http, $cookies, state, map_config, live)
+geodash.controllers.GeoDashControllerEditor = function(
+  $scope, $element, $controller, $interpolate, $timeout,
+  $http, $cookies)
 {
   angular.extend(this, $controller('GeoDashControllerBase', {$element: $element, $scope: $scope}));
+  /////////////////////
+  var mainScope = $element.parents(".geodash-dashboard:first").isolateScope();
   /////////////////////
   $scope.config = {
     "that" : {
@@ -29,16 +32,26 @@ geodash.controllers["controller_sidebar_geodasheditor"] = function(
   $scope.editor = geodash.initial_data["data"]["editor"];
   /////////////////////
   // Accessible by Editor
-  $scope.workspace = {
-    "config": map_config,
-    "security": geodash.initial_data["data"]["security"]
-  };
-  $scope.workspace_flat = geodash.api.flatten($scope.workspace, undefined);
-  $scope.schema = {
-    "config": geodash.initial_data["data"]["map_config_schema"],
-    "security": geodash.initial_data["data"]["security_schema"]
-  };
-  $scope.schema_flat = geodash.api.flatten($scope.schema, undefined);
+  //$scope.stack.backtrace.push();
+  $scope.update_stack([$scope.expand({
+    "workspace": {
+      "config": angular.extend({}, mainScope.dashboard),
+      "security": geodash.initial_data["data"]["security"]
+    },
+    "schema": {
+      "config": geodash.initial_data["data"]["dashboard_schema"],
+      "security": geodash.initial_data["data"]["security_schema"]
+    },
+    "path": ""
+  })]);
+  $scope.update_main();
+  //$scope.;
+  //$scope.workspace_flat = geodash.util.flatten($scope.workspace, undefined);
+  //$scope.;
+  //$scope.schema_flat = geodash.util.flatten($scope.schema, undefined);
+  //$scope.path = "";
+  //$scope.path_flat = "";
+  //$scope.path_array = [];
   /////////////////////
   $scope.fields_by_pane = {};
   $scope.value_edit_field = null;
@@ -70,11 +83,46 @@ geodash.controllers["controller_sidebar_geodasheditor"] = function(
     $scope.fields_by_pane = fields_by_pane;
   };
   $scope.updateVariables();
-  $scope.$watch('map_config', $scope.updateVariables);
+  $scope.$watch('dashboard', $scope.updateVariables);
   $scope.$watch('editor', $scope.updateVariables);
   $scope.$watch('schema', $scope.updateVariables);
 
   var jqe = $($element);
+
+  $scope.edit_field_root = function(path)
+  {
+    var ws = $scope.stack.head.workspace;
+    var schema = $scope.stack.head.schema;
+    var fieldType = extract((path+".type").split("."), schema);
+    var x = {
+      'modal': (fieldType == "object" ? 'geodash-modal-edit-object' : 'geodash-modal-edit-field'),
+      'prev': undefined,
+      'workspace': ws,
+      'schema': schema,
+      'basepath': path,
+      'basepath_array': path.split("."),
+      'schemapath': path,
+      'objectIndex': undefined
+    };
+    console.log('New X:');
+    console.log(x);
+
+    geodash.util.getScope(x.modal).push(x, []);
+    $("#"+x.modal).modal({'backdrop': 'static','keyboard':false});
+    $("#"+x.modal).modal('show');
+    $timeout(function(){
+      geodash.ui.update(x.modal);
+      var modalElement = $("#"+x.modal);
+      var tabs = modalElement.find('.nav-tabs li');
+      tabs.slice(0, 1).addClass('active');
+      tabs.slice(1).removeClass('active');
+      var panes = modalElement.find('.tab-pane');
+      panes.slice(0, 1).addClass('in active');
+      panes.slice(1).removeClass('in active');
+    },0);
+  };
+
+
 
   $scope.validateFields = function(field_flat_array)
   {
@@ -85,7 +133,7 @@ geodash.controllers["controller_sidebar_geodasheditor"] = function(
   };
   $scope.validateField = function(field_flat)
   {
-    // Update map_config
+    // Update dashboard
     if(field_flat.indexOf("__") == -1)
     {
       $scope.workspace[field_flat] = $scope.workspace_flat[field_flat];
@@ -138,7 +186,7 @@ geodash.controllers["controller_sidebar_geodasheditor"] = function(
       {
         var newValue = currentValue.push(valueToAdd);
         $scope.workspace[field] = newValue;
-        $.each(geodash.api.flatten(newValue), function(i, x){
+        $.each(geodash.util.flatten(newValue), function(i, x){
           $scope.workspace_flat[field_flat+"__"+i] = x;
         });
       }
@@ -170,7 +218,7 @@ geodash.controllers["controller_sidebar_geodasheditor"] = function(
 
   $scope.saveConfig = function($event)
   {
-    var slug = $('#geodash-main').scope()['state']['slug'];
+    var slug = extract("state.slug", geodash.util.getScope("geodash-main"));
     if(window.confirm("Are you sure you want to save?"))
     {
       var httpConfig = {
@@ -183,14 +231,19 @@ geodash.controllers["controller_sidebar_geodasheditor"] = function(
         'config': $scope.workspace.config,
         'security': $scope.workspace.security
       };
-      $http.post('/api/dashboard/'+slug+'/config/save', payload, httpConfig).success(function(data)
+
+      $http.post($interpolate(geodash.api.getEndpoint('save'))({'slug': slug}), payload, httpConfig).success(function(data)
       {
         console.log(data);
         if(data.success)
         {
           if(data.config.slug != slug)
           {
-            window.location.href = '/dashboard/'+data.config.slug;
+            var template = geodash.api.getPage("dashboard");
+            if(template != undefined)
+            {
+              window.location.href = $interpolate(template)({ 'slug': data.config.slug });
+            }
           }
           else
           {
@@ -207,7 +260,7 @@ geodash.controllers["controller_sidebar_geodasheditor"] = function(
 
   $scope.saveAsConfig = function($event)
   {
-    var slug = $('#geodash-main').scope()['state']['slug'];
+    var slug = extract("state.slug", geodash.util.getScope("geodash-main"));
     if(window.confirm("Are you sure you want to save as a new dashboard?  Old one will still exist at old slug."))
     {
       if($scope.workspace.config.slug == slug)
@@ -226,12 +279,17 @@ geodash.controllers["controller_sidebar_geodasheditor"] = function(
         'config': $scope.workspace.config,
         'security': $scope.workspace.security
       };
-      $http.post('/api/dashboard/config/new', payload, httpConfig).success(function(data)
+      $http.post(geodash.api.getEndpoint('saveas'), payload, httpConfig).success(function(data)
       {
         console.log(data);
         if(data.success)
         {
-          window.location.href = '/dashboard/'+data.config.slug;
+          var template = geodash.api.getPage("dashboard");
+          if(template != undefined)
+          {
+            window.location.href = $interpolate(template)({ 'slug': data.config.slug });
+          }
+
         }
         else
         {

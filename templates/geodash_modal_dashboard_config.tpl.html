@@ -152,7 +152,7 @@
                   <div class="collapse navbar-collapse" id="geodash-config-yaml-navbar-collapse">
                     <div class="navbar-form navbar-right">
                       <a class="btn btn-primary" data-toggle="collapse" data-target="#geodash-config-yaml-preview">Show/Hide</a>
-                      <a class="btn btn-primary" href="/api/dashboard/config/geodash_dashboard_{{ workspace.config.slug}}.yml" target="_blank">Download</a>
+                      <a class="btn btn-primary" ng-href="{{ api('download_config_yaml') }}" target="_blank">Download</a>
                     </div>
                   </div>
                 </div>
@@ -188,7 +188,7 @@
                   <div class="collapse navbar-collapse" id="geodash-config-json-navbar-collapse">
                     <div class="navbar-form navbar-right">
                       <a class="btn btn-primary" data-toggle="collapse" data-target="#geodash-config-json-preview">Show/Hide</a>
-                      <a class="btn btn-primary" href="/api/dashboard/config/geodash_dashboard_{{ workspace.config.slug }}.json" target="_blank">Download</a>
+                      <a class="btn btn-primary" ng-href="{{ api('download_config_json') }}" target="_blank">Download</a>
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 geodash.directives["geodashModalDashboardSecurity"] = function(){
   return {
-    controller: geodash.controllers.controller_modal_dashboard_security,
+    controller: geodash.controllers.GeoDashControllerModalDashboardSecurity,
     restrict: 'EA',
     replace: true,
     scope: {},

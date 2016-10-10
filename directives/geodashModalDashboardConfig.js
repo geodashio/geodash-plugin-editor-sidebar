@@ -1,6 +1,6 @@
 geodash.directives["geodashModalDashboardConfig"] = function(){
   return {
-    controller: geodash.controllers.controller_modal_dashboard_config,
+    controller: geodash.controllers.GeoDashControllerModalDashboardConfig,
     restrict: 'EA',
     replace: true,
     scope: {},

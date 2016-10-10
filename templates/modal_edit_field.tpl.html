@@ -47,6 +47,7 @@
                   class="input-group-addon btn btn-primary"
                   data-toggle="tooltip"
                   data-placement="bottom"
+                  data-container="#geodash-modal-edit-field .modal-dialog"
                   ng-attr-title="{{ schema | extract : schemapath : 'description' }}">
                   <i class="fa fa-info-circle"></i>
                 </div>
@@ -65,32 +66,38 @@
                   data-geodash-field-type="{{ schema | extract : schemapath : 'type' }}"
                   ng-required="schema | extract : schemapath : 'required'"
                   aria-describedby="editor-field-{{ path_flat }}-label"
-                  data-initial-data="{{ schema | extract : schemapath : 'source' }}"
-                  data-backend="editor-field-{{ path_flat }}-backend"
+                  data-local-data="{{ localDataForSearch() }}"
+                  data-remote-data="{{ remoteDataForSearch() }}"
+                  data-search-output="id"
+                  data-target-input-id="editor-field-{{ path_flat }}-backend"
                   data-template-empty="<div class=&quot;alert alert-danger empty-message&quot;>Unable to find value</div>"
-                  ng-keyup="keyUpOnField($event, path, path_flat)">
+                  data-template-suggestion="{{ schema | extract : schemapath : 'search' : 'templates' : 'suggestion' | default_if_undefined: 'default' }}"
+                  ng-keyup="keyUpOnField($event)">
                 <div
                   class="input-group-addon btn btn-primary btn-show-options"
                   data-toggle="tooltip"
                   data-placement="bottom"
+                  data-container="#geodash-modal-edit-field .modal-dialog"
                   title="Show Options."
-                  ng-click="showOptions($event, '#editor-field-'+path_flat)">
+                  ng-click="showOptions('#editor-field-'+path_flat)">
                   <i class="fa fa-chevron-down"></i>
                 </div>
                 <div
                   class="input-group-addon btn btn-success btn-add"
                   data-toggle="tooltip"
                   data-placement="bottom"
-                  title="Prepend to list of layers."
+                  data-container="#geodash-modal-edit-field .modal-dialog"
+                  title="Prepend to list."
                   ng-click="prependToField($event)">
                   <i class="fa fa-plus"></i>
                 </div>
                 <div
-                  class="input-group-addon btn btn-danger btn-clear"
-                  data-target="#editor-field-{{ path_flat }}"
+                  class="input-group-addon btn btn-danger geodash-clear"
                   data-toggle="tooltip"
                   data-placement="bottom"
-                  title="Clear new layer text.">
+                  data-container="#geodash-modal-edit-field .modal-dialog"
+                  title="Clear new value."
+                  data-target-input-id="editor-field-{{ path_flat }}">
                   <i class="fa fa-times"></i>
                 </div>
               </div>
@@ -136,6 +143,7 @@
                   class="btn btn-primary"
                   data-toggle="tooltip"
                   data-placement="bottom"
+                  data-container="#geodash-modal-edit-field .modal-dialog"
                   ng-attr-title="{{ schema | extract : schemapath : 'description' }}">
                   <i class="fa fa-info-circle"></i>
                 </div>
@@ -143,9 +151,20 @@
                   class="btn btn-success"
                   data-toggle="tooltip"
                   data-placement="bottom"
+                  data-container="#geodash-modal-edit-field .modal-dialog"
                   title="Prepend to list."
                   ng-click="add_object()">
                   <i class="fa fa-plus"></i>
+                </div>
+                <div
+                  ng-if="schema | extract : schemapath : 'search' | ternary_defined : true : false"
+                  class="btn btn-success"
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-modal-edit-field .modal-dialog"
+                  title="Search for new object."
+                  ng-click="search_object()">
+                  <i class="fa fa-search"></i>
                 </div>
               </div>
               <br>
@@ -176,7 +195,7 @@
                   type="text"
                   class="form-control btn btn-primary input-group-addon"
                   style="line-height: 1.42857143;"
-                  ng-bind-html="x.id | default_if_undefined : (x | json)"
+                  ng-bind-html="x.title | default_if_undefined : (x.id | default_if_undefined : (x | json))"
                   ng-click="edit_object($index)"></span>
                 <a
                   class="input-group-addon btn btn-primary"
@@ -209,12 +228,6 @@
             <pre style="word-wrap: break-word; white-space: pre-wrap;">{{ workspace | extract : path | json }}</pre>
           </div>
         </div>
-        <hr>
-        <div
-          class="btn btn-danger btn-clear"
-          data-target="#modal-edit-field-{{ path_flat }}, #editor-field-{{ path_flat }}">
-          <i class="fa fa-times"></i>
-        </div>
       </div>
       <div class="modal-footer">
         <button
@@ -227,6 +240,19 @@
           class="btn btn-default"
           ng-bind-html="back_label()"
           ng-click="go_back()"></button>
+        <hr>
+        <button
+          ng-if="path_array | length | gte : 3"
+          type="button"
+          class="btn btn-success"
+          ng-bind-html="'Save All'"
+          ng-click="save_all()"></button>
+        <button
+          ng-if="path_array | length | gte : 3"
+          type="button"
+          class="btn btn-danger"
+          ng-bind-html="'Cancel All'"
+          ng-click="rollback_all()"></button>
       </div>
     </div>
   </div>

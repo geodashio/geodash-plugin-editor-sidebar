@@ -1,4 +1,4 @@
-geodash.controllers["controller_modal_edit_object"] = function($scope, $element, $controller)
+geodash.controllers["GeoDashControllerModalEditObject"] = function($scope, $element, $controller)
 {
 
   angular.extend(this, $controller('GeoDashControllerModal', {$element: $element, $scope: $scope}));
@@ -8,7 +8,7 @@ geodash.controllers["controller_modal_edit_object"] = function($scope, $element,
   $scope.ui = m.ui;
   //////////////////////////////////
   $scope.html5data = geodasheditor.html5data;
-  $scope.updateValue = geodash.api.updateValue;
+  $scope.updateValue = geodash.util.updateValue;
   //////////////////////////////////
   $scope.showOptions = geodash.ui.showOptions;
   //////////////////////////////////
@@ -39,7 +39,14 @@ geodash.controllers["controller_modal_edit_object"] = function($scope, $element,
         $scope.stack.head.path_array.concat([objectIndex]) :
         $scope.stack.head.path_array;
       var obj = extract(keyChain, $scope.stack.head.workspace);
-      return extract('title', obj) || extract('id', obj) || objectIndex || $scope.stack.head.objectIndex;
+      if(angular.isDefined(obj))
+      {
+        return extract('title', obj) || extract('id', obj) || objectIndex || $scope.stack.head.objectIndex;
+      }
+      else
+      {
+        return "[ empty ]";
+      }
     }
     else
     {

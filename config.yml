@@ -1,20 +1,24 @@
 ---
+name: "geodash-plugin-editor-sidebar"
 controllers:
-  - controller_sidebar_geodasheditor.js
-  - controller_modal_edit_field.js
-  - controller_modal_edit_object.js
+  - GeoDashControllerEditor.js
+  - GeoDashControllerModalEditField.js
+  - GeoDashControllerModalEditObject.js
+  - GeoDashControllerModalSearchObject.js
   - GeoDashControllerModalDashboardSecurity.js
   - GeoDashControllerModalDashboardConfig.js
 directives:
   - geodashDashboardEditor.js
   - geodashModalEditField.js
   - geodashModalEditObject.js
+  - geodashModalSearchObject.js
   - geodashModalDashboardConfig.js
   - geodashModalDashboardSecurity.js
 templates:
   - dashboard_editor.tpl.html
   - modal_edit_field.tpl.html
   - modal_edit_object.tpl.html
+  - modal_search_object.tpl.html
   - geodash_modal_dashboard_config.tpl.html
   - geodash_modal_dashboard_security.tpl.html
 less:
@@ -99,3 +103,29 @@ modals:
         fields:
           modaleditfield_workspace: modaleditobject_workspace
           modaleditfield_workspace_flat: modaleditobject_workspace_flat
+  - name: search_object
+    ui:
+      mainClass: ""
+      tabs:
+        - target: modal-search-object-pane-input
+          label: Search
+        - target: modal-search-object-pane-yaml
+          label: YAML
+        - target: modal-search-object-pane-json
+          label: JSON
+    config:
+      that:
+        id: geodash-modal-search-object
+      workspace:
+        workspace: modalsearchobject_workspace
+        workspace_flat: modalsearchobject_workspace_flat
+      schema:
+        schema: modalsearchobject_schema
+        schema_flat: modalsearchobject_schema_flat
+      back:
+        target: geodash-modal-edit-field
+      save:
+        target: geodash-modal-edit-field
+        fields:
+          modaleditfield_workspace: modalsearchobject_workspace
+          modaleditfield_workspace_flat: modalsearchobject_workspace_flat

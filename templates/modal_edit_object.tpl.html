@@ -6,7 +6,7 @@
   aria-labelledby="myModalLabel">
   <div id="geodash-edit-object" class="modal-dialog geodash-responsive" data-backdrop="static" role="document">
     <div
-      ng-if="showModal(objectIndex)"
+      ng-if="showModal(path)"
       class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" aria-hidden="true" ng-click="go_back()"><i class="fa fa-times"></i></button>
@@ -23,7 +23,7 @@
             <form
               novalidate
               class="form-horizontal simple-form"
-              ng-if="objectIndex != undefined"
+              ng-if="path != undefined"
               style="padding-bottom:20px;">
               <!--
                 Doesn't rerun ng-repeat beacuse object_schema.fields is the same
@@ -53,9 +53,10 @@
                         class="input-group-addon btn btn-primary"
                         data-toggle="tooltip"
                         data-placement="bottom"
+                        data-container="#geodash-modal-edit-object .modal-dialog"
                         title="Can use Angular Templates and Filters (.e.g, feature.geometry.lat | number : 4)"><i class="fa fa-code"></i></div>
                       <input
-                        ng-if="object_field | extract : 'options' | default_if_undefined : [] | length | eq: 0"
+                        ng-if="includeTypeaheadForField(object_field) | not"
                         id="editor-object-field-{{ object_field_id_flat }}"
                         name="editor-object-field-{{ object_field_id_flat }}"
                         type="text"
@@ -67,40 +68,41 @@
                         ng-model="workspace_flat[object_field_id_flat]"
                         ng-change="validateField(object_field_id_flat)">
                       <input
-                        ng-if="object_field | extract : 'options' | default_if_undefined : [] | length | gt: 0"
-                        id="editor-object-field-{{ object_field_id_flat }}-backend"
-                        name="editor-object-field-{{ object_field_id_flat }}-backend"
-                        type="text"
-                        class="form-control"
-                        style="display:none;"
-                        ng-value="workspace_flat | extract : object_field_id_flat"
-                        ng-model="workspace_flat[object_field_id_flat]"
-                        ng-change="validateField(object_field_id_flat)">
-                      <input
-                        ng-if="object_field | extract : 'options' | default_if_undefined : [] | length | gt: 0"
+                        ng-if="includeTypeaheadForField(object_field)"
                         id="editor-object-field-{{ object_field_id_flat }}"
                         name="editor-object-field-{{ object_field_id_flat }}"
                         type="text"
                         class="typeahead form-control"
                         placeholder="{{ object_field | extract : 'placeholder' }}"
                         data-geodash-field-type="{{ object_field | extract : 'type' }}"
-                        data-initial-data="{{ object_field | extract : 'options' }}"
-                        data-backend="editor-object-field-{{ object_field_id_flat }}-backend"
-                        ng-value="workspace_flat | extract : object_field_id_flat">
+                        data-typeahead-datasets="{{ typeaheadDatasetsForSearch(object_field) }}"
+                        data-local-data="{{ localDataForSearch(object_field) }}"
+                        data-remote-data="{{ remoteDataForSearch(object_field) }}"
+                        data-initial-value="{{ workspace_flat | extract : object_field_id_flat }}"
+                        data-target-scope-id="geodash-modal-edit-object"
+                        data-target-scope-path="{{ object_field_path | prepend : 'workspace.' }}"
+                        data-target-scope-change="['validateField', object_field_id_flat]"
+                        data-search-output="id">
                       <div
-                        ng-if="object_field | extract : 'options' | default_if_undefined : [] | length | gt: 0"
+                        ng-if="includeTypeaheadForField(object_field)"
                         class="input-group-addon btn btn-primary btn-show-options"
                         data-toggle="tooltip"
                         data-placement="bottom"
+                        data-container="#geodash-modal-edit-object .modal-dialog"
                         title="Show Options."
-                        ng-click="showOptions($event, '#editor-object-field-' + object_field_id_flat)">
+                        ng-click="showOptions('#editor-object-field-' + object_field_id_flat)">
                         <i class="fa fa-chevron-down"></i>
                       </div>
                       <div
-                        geodash-btn mode="clear"
-                        target="#editor-object-field-{{ object_field_id_flat }}"
-                        info="Clear field"
-                        tooltip-placement="bottom"></div>
+                        class="input-group-addon btn btn-danger geodash-clear"
+                        data-toggle="tooltip"
+                        data-placement="bottom"
+                        data-container="#geodash-modal-edit-object .modal-dialog"
+                        ng-attr-title="Clear field"
+                        data-target-input-id="editor-object-field-{{ object_field_id_flat }}"
+                        data-target-scope-id="geodash-modal-edit-object"
+                        data-target-scope-path="{{ ['workspace'] | append : path_array | append : [object_field_id]}}">
+                        <i class="fa fa-times"></i></div>
                     </div>
                     <div
                       ng-if="object_field | extract : 'multiline' | default_if_undefined: 'false' | parseTrue"
@@ -119,10 +121,13 @@
                         ng-change="validateField(object_field_id_flat)"
                         ng-bind-html="workspace_flat | extract : object_field_id_flat"></textarea>
                       <div
-                        geodash-btn mode="clear"
-                        target="#editor-object-field-{{ object_field_id_flat }}"
-                        info="Clear field"
-                        tooltip-placement="bottom"></div>
+                        class="input-group-addon btn btn-danger geodash-clear"
+                        data-toggle="tooltip"
+                        data-placement="bottom"
+                        data-container="#geodash-modal-edit-object .modal-dialog"
+                        ng-attr-title="Clear field"
+                        data-target-input-id="editor-object-field-{{ object_field_id_flat }}">
+                        <i class="fa fa-times"></i></div>
                     </div>
                   </div>
                 </div>
@@ -148,10 +153,13 @@
                           ng-model="workspace_flat[object_field_id_flat]"
                           ng-change="validateField(object_field_id_flat)">
                         <div
-                          geodash-btn mode="clear"
-                          target="#editor-object-field-{{ object_field_id_flat }}"
-                          info="Clear field"
-                          tooltip-placement="bottom"></div>
+                          class="input-group-addon btn btn-danger geodash-clear"
+                          data-toggle="tooltip"
+                          data-placement="bottom"
+                          data-container="#geodash-modal-edit-object .modal-dialog"
+                          ng-attr-title="Clear field"
+                          data-target-input-id="editor-object-field-{{ object_field_id_flat }}">
+                          <i class="fa fa-times"></i></div>
                       </div>
                     </div>
                   </div>
@@ -193,10 +201,13 @@
                         ng-click="edit_object(object_field_id, objectFieldIndex)">
                         <i class="fa fa-pencil-square-o"></i></div>
                       <div
-                        geodash-btn mode="clear"
-                        target="#editor-object-field-{{ object_field_id_flat }}"
-                        info="Clear field"
-                        tooltip-placement="bottom"></div>
+                        class="input-group-addon btn btn-danger geodash-clear"
+                        data-toggle="tooltip"
+                        data-placement="bottom"
+                        data-container="#geodash-modal-edit-object .modal-dialog"
+                        ng-attr-title="Clear field"
+                        data-target-input-id="editor-object-field-{{ object_field_id_flat }}">
+                        <i class="fa fa-times"></i></div>
                     </div>
                   </div>
                 </div>
@@ -219,10 +230,13 @@
                         </span>
                       </div>
                       <div
-                        geodash-btn mode="clear"
-                        target="#editor-object-field-{{ object_field_id_flat }}"
-                        info="Clear field"
-                        tooltip-placement="bottom"></div>
+                        class="input-group-addon btn btn-danger geodash-clear"
+                        data-toggle="tooltip"
+                        data-placement="bottom"
+                        data-container="#geodash-modal-edit-object .modal-dialog"
+                        ng-attr-title="Clear field"
+                        data-target-input-id="editor-object-field-{{ object_field_id_flat }}">
+                        <i class="fa fa-times"></i></div>
                     </div>
                   </div>
                 </div>
@@ -254,10 +268,13 @@
                         ng-click="edit_field(object_field_id, objectFieldIndex)">
                         <i class="fa fa-pencil-square-o"></i></div>
                       <div
-                        geodash-btn mode="clear"
-                        target="#editor-object-field-{{ object_field_id_flat }}"
-                        info="Clear field"
-                        tooltip-placement="bottom"></div>
+                        class="input-group-addon btn btn-danger geodash-clear"
+                        data-toggle="tooltip"
+                        data-placement="bottom"
+                        data-container="#geodash-modal-edit-object .modal-dialog"
+                        ng-attr-title="Clear field"
+                        data-target-input-id="editor-object-field-{{ object_field_id_flat }}">
+                        <i class="fa fa-times"></i></div>
                     </div>
                   </div>
                 </div>
@@ -294,6 +311,19 @@
           class="btn btn-default"
           ng-bind-html="back_label()"
           ng-click="go_back()"></button>
+        <hr>
+        <button
+          ng-if="path_array | length | gte : 3"
+          type="button"
+          class="btn btn-success"
+          ng-bind-html="'Save All'"
+          ng-click="save_all()"></button>
+        <button
+          ng-if="path_array | length | gte : 3"
+          type="button"
+          class="btn btn-danger"
+          ng-bind-html="'Cancel All'"
+          ng-click="rollback_all()"></button>
       </div>
     </div>
   </div>

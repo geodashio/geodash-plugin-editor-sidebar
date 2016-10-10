@@ -1,4 +1,5 @@
 <div
+  id="geodash-dashboard-editor"
   class="geodash-dashboard-editor">
   <nav class="navbar navbar-default">
     <div class="container-fluid">
@@ -96,8 +97,9 @@
                   class="input-group-addon btn btn-primary btn-show-options"
                   data-toggle="tooltip"
                   data-placement="bottom"
+                  data-container="#geodash-dashboard-editor"
                   title="Show Options."
-                  ng-click="showOptions($event, '#editor-field-' + field_flat)">
+                  ng-click="showOptions('#editor-field-' + field_flat)">
                   <i class="fa fa-chevron-down"></i>
                 </div>
                 <div
@@ -110,10 +112,13 @@
                   data-intent-data="{{ html5data('showModal', 'geodash-modal-edit-field', field) }}"
                   data-intent-ctrl="{{ config.that.id }}"></div>
                 <div
-                  geodash-btn mode="clear"
-                  target="#editor-field-{{ field_flat }}"
-                  info="Clear field"
-                  tooltip-placement="bottom"></div>
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-dashboard-editor"
+                  ng-attr-title="{{ 'Clear field' }}"
+                  class="input-group-addon btn btn-danger"
+                  ng-click="clear_field(field_flat)">
+                  <i class="fa fa-times"></i></div>
               </div>
               <div
                 ng-if="schema | extract : field : 'multiline' | default_if_undefined: 'false' | parseTrue"
@@ -131,19 +136,25 @@
                   ng-model="workspace_flat[field_flat]"
                   ng-change="validateField(field_flat)"
                   ng-bind-html="workspace_flat | extract : field_flat"></textarea>
-                <a
+                <div
                   class="geodash-intent input-group-addon btn btn-primary btn-edit"
-                  href="#"
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-dashboard-editor"
+                  ng-attr-title="{{ 'Edit field' }}"
                   data-intent-name="showModal"
                   data-intent-data="{{ html5data('showModal', 'geodash-modal-edit-field', field) }}"
                   data-intent-ctrl="{{ config.that.id }}">
                   <i class="fa fa-pencil-square-o "></i>
-                </a>
+                </div>
                 <div
-                  geodash-btn mode="clear"
-                  target="#editor-field-{{ field_flat }}"
-                  info="Clear field"
-                  tooltip-placement="bottom"></div>
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-dashboard-editor"
+                  ng-attr-title="{{ 'Clear field' }}"
+                  class="input-group-addon btn btn-danger"
+                  ng-click="clear_field(field_flat)">
+                  <i class="fa fa-times"></i></div>
               </div>
             </div>
             <div ng-show="form.$submitted || form.{{ field }}.$touched">
@@ -172,10 +183,13 @@
                 ng-model="workspace_flat[field_flat]"
                 ng-change="validateField(field_flat)">
               <div
-                geodash-btn mode="clear"
-                target="#editor-field-{{ field_flat }}"
-                info="Clear field"
-                tooltip-placement="bottom"></div>
+                data-toggle="tooltip"
+                data-placement="bottom"
+                data-container="#geodash-dashboard-editor"
+                ng-attr-title="{{ 'Clear field' }}"
+                class="input-group-addon btn btn-danger"
+                ng-click="clear_field(field_flat)">
+                <i class="fa fa-times"></i></div>
             </div>
             <div ng-show="form.$submitted || form.{{ field }}.$touched">
               <span ng-show="form.{{ field }}.$error.required">{{ schema | extract : field : 'label' }} is required.</span>
@@ -214,10 +228,13 @@
                   info="Set to false"
                   tooltip-placement="bottom"></div>
                 <div
-                  geodash-btn mode="clear"
-                  target="#editor-field-{{ field_flat }}"
-                  info="Clear field"
-                  tooltip-placement="bottom"></div>
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-dashboard-editor"
+                  ng-attr-title="{{ 'Clear field' }}"
+                  class="input-group-addon btn btn-danger"
+                  ng-click="clear_field(field_flat)">
+                  <i class="fa fa-times"></i></div>
               </div>
             </div>
           </div>
@@ -237,24 +254,63 @@
                     ng-bind-html="x">
                   </span>
                 </div>
-                <a
+                <div
                   class="geodash-intent input-group-addon btn btn-primary btn-edit"
-                  href="#"
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-dashboard-editor"
+                  ng-attr-title="{{ 'Edit field' }}"
                   data-intent-name="showModal"
                   data-intent-data="{{ html5data('showModal', 'geodash-modal-edit-field', field) }}"
                   data-intent-ctrl="{{ config.that.id }}">
                   <i class="fa fa-pencil-square-o "></i>
-                </a>
+                </div>
                 <div
-                  geodash-btn mode="clear"
-                  target="#editor-field-{{ field_flat }}"
-                  info="Clear field"
-                  tooltip-placement="bottom"></div>
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-dashboard-editor"
+                  ng-attr-title="{{ 'Clear field' }}"
+                  class="input-group-addon btn btn-danger"
+                  ng-click="clear_field(field_flat)">
+                  <i class="fa fa-times"></i></div>
               </div>
             </div>
           </div>
-          <div
-            ng-if="schema | extract : field : 'type' | inArray: ['objectarray', 'objarray']">
+          <div ng-if="schema | extract : field : 'type' | inArray: ['obj', 'object']">
+            <div geodash-label
+              target="editor-field-{{ field_flat }}"
+              content="{{ schema | extract : field : 'label' }}"></div>
+            <div class="col-sm-9" style="max-width: 600px;">
+              <div class="input-group">
+                <div geodash-btn-info info="{{ schema | extract : field : 'description' }}"></div>
+                <span
+                  id="editor-field-{{ field_flat }}"
+                  name="editor-field-{{ field_flat }}"
+                  type="text"
+                  class="form-control btn btn-primary input-group-addon"
+                  style="line-height: 1.42857143;"
+                  ng-bind-html="verbose_title(field)"
+                  ng-click="edit_field_root(field)"></span>
+                <div
+                  target="#editor-field-{{ field_flat }}"
+                  data-toggle="tooltip"
+                  ng-attr-title="Edit field"
+                  tooltip-placement="bottom"
+                  class="input-group-addon btn btn-primary"
+                  ng-click="edit_field_root(field)">
+                  <i class="fa fa-pencil-square-o"></i></div>
+                <div
+                  class="input-group-addon btn btn-danger geodash-clear"
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-modal-edit-object .modal-dialog"
+                  ng-attr-title="Clear field"
+                  data-target-input-id="editor-field-{{ field_flat }}">
+                  <i class="fa fa-times"></i></div>
+              </div>
+            </div>
+          </div>
+          <div ng-if="schema | extract : field : 'type' | inArray: ['objectarray', 'objarray']">
             <label
               for="editor-field-{{ field_flat }}"
               class="col-sm-3 control-label"
@@ -267,26 +323,29 @@
                   style="height: auto; max-width: 280px;min-height: 28px;max-height: 70px;overflow-y: scroll;"
                   disabled>
                   <span
-                    ng-repeat="x in workspace| extract : field track by $index"
+                    ng-repeat="x in workspace | extract : field track by $index"
                     class=""
                     style="width: 230px; height: 20px; text-overflow: ellipsis; display: block;white-space: nowrap; overflow: hidden;"
                     ng-bind-html="x.title + ' ('+x.id+')'">
                   </span>
                 </div>
                 <div
-                  geodash-btn mode="edit"
                   target="#editor-field-{{ field_flat }}"
-                  info="Edit field"
-                  tooltip-placement="bottom"
-                  class="geodash-intent"
-                  data-intent-name="showModal"
-                  data-intent-data="{{ html5data('showModal', 'geodash-modal-edit-field', field) }}"
-                  data-intent-ctrl="{{ config.that.id }}"></div>
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-dashboard-editor"
+                  ng-attr-title="Edit field"
+                  class="input-group-addon btn btn-primary"
+                  ng-click="edit_field_root(field)">
+                  <i class="fa fa-pencil-square-o"></i></div>
                 <div
-                  geodash-btn mode="clear"
-                  target="#editor-field-{{ field_flat }}"
-                  info="Clear field"
-                  tooltip-placement="bottom"></div>
+                  data-toggle="tooltip"
+                  data-placement="bottom"
+                  data-container="#geodash-dashboard-editor"
+                  ng-attr-title="{{ 'Clear field' }}"
+                  class="input-group-addon btn btn-danger"
+                  ng-click="clear_field(field_flat)">
+                  <i class="fa fa-times"></i></div>
               </div>
             </div>
           </div>

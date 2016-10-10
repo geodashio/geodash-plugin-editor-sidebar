@@ -1,6 +1,6 @@
 geodash.directives["geodashModalEditField"] = function(){
   return {
-    controller: geodash.controllers.controller_modal_edit_field,
+    controller: geodash.controllers.GeoDashControllerModalEditField,
     replace: true,
     //require: undefined,
     restrict: 'EA',
